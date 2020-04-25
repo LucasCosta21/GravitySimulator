@@ -7,7 +7,7 @@ from pygame.locals import (
 pygame.init()
 COMPRIMENTO_TELA = 1024
 ALTURA_TELA = 700
-G = 0.06
+G = 0.1
 
 class Planeta:
     def __init__(self, nome, raio, massa, cor, pontoX, pontoY, angulo, modulo):
@@ -21,12 +21,14 @@ class Planeta:
         self.modulo = modulo
         self.velX = modulo * math.sin(math.radians(angulo))
         self.velY = modulo * math.cos(math.radians(angulo))
+        self.historicoPos = [[pontoX, pontoY]]
 
     def Mover(self, modulo, angulo):
         self.velX += modulo * math.sin(math.radians(angulo + 90))
         self.velY += modulo * math.cos(math.radians(angulo + 90))
         self.posX += self.velX
         self.posY += self.velY
+        self.historicoPos.append([self.posX, self.posY])
 
     def Desenhar(self, screen):
         pygame.draw.circle(screen, self.cor, (int(math.floor(self.posX)), int(math.floor(self.posY))), self.raio)
@@ -47,14 +49,16 @@ class Sistema:
             vetor = self.calculaVetor(planeta)
             planeta.Mover(vetor[0], vetor[1])
             planeta.Desenhar(self.win)
+            for posicao in planeta.historicoPos:
+                self.win.fill((255,255,255), ((posicao[0], posicao[1]), (1, 1)))
 
     def calculaVetor(self, planeta):
         forca = 0.0
         angulo = 0.0
         for outroPlaneta in self.planetas:
-            if planeta.nome != outroPlaneta.nome:
-                distancia = self.calculaDistancia(planeta, outroPlaneta)
-                forca = (G * planeta.massa * outroPlaneta.massa)/distancia
+            distancia = self.calculaDistancia(planeta, outroPlaneta)
+            if planeta.nome != outroPlaneta.nome and distancia > 10:
+                forca = (G * outroPlaneta.massa)/(distancia**2)
                 angulo = self.calculaAngulo(planeta, outroPlaneta)
         return [forca, angulo]
 
@@ -63,11 +67,11 @@ class Sistema:
         catetoOposto = corpo1.posY - corpo2.posY
         if catetoAdjacente > 0:
             if catetoOposto > 0:
-                return math.atan(catetoAdjacente/catetoOposto) + 270
+                return 180 - math.degrees(math.atan(abs(catetoOposto/float(catetoAdjacente))))
             elif catetoOposto == 0:
                 return 180
             elif catetoOposto < 0:
-                return math.atan(catetoAdjacente/catetoOposto)
+                return math.degrees(math.atan(abs(catetoOposto/float(catetoAdjacente)))) + 180
         elif catetoAdjacente == 0:
             if catetoOposto > 0:
                 return 90
@@ -77,11 +81,11 @@ class Sistema:
                 return 270
         elif catetoAdjacente < 0:
             if catetoOposto > 0:
-                return math.atan(catetoAdjacente/catetoOposto) + 180
+                return math.degrees(math.atan(abs(catetoOposto/float(catetoAdjacente))))
             elif catetoOposto == 0:
                 return 0
             elif catetoOposto < 0:
-                return math.atan(catetoAdjacente/catetoOposto) + 90
+                return 360 - math.degrees(math.atan(abs(catetoOposto/float(catetoAdjacente)))) 
 
     def calculaDistancia(self, corpo1, corpo2):
         x1 = corpo1.posX
@@ -94,10 +98,11 @@ class Sistema:
         pygame.quit()
 
 def main():
-    terra = Planeta('terra', 20, 10, (0,0,255), 200, 350, 0, 0)
-    marte = Planeta('marte', 20, 10, (255,0,0), 800, 350, 0, 0)
+    terra = Planeta('terra', 20, 10, (0,0,255), 200, 100, 0, 0.3)
+    sol = Planeta('sol', 20, 1000, (255,255,0), 512, 350, 0, 0)
+    #mercurio = Planeta('mercurio', 20, 10, (0,255,0), 712, 400, 0, 0)
     rodando = True
-    solar = Sistema([terra, marte])
+    solar = Sistema([terra, sol])
     while rodando:
         solar.loop()
         for event in pygame.event.get():
@@ -105,3 +110,4 @@ def main():
                 rodando = False
 
 main()
+#print(math.degrees(math.atan(abs(100/float(400)))))
