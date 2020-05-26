@@ -100,7 +100,6 @@ class Sistema:
 def main():
     terra = Planeta('terra', 20, 10, (0,0,255), 200, 100, 0, 0.3)
     sol = Planeta('sol', 20, 1000, (255,255,0), 512, 350, 0, 0)
-    #mercurio = Planeta('mercurio', 20, 10, (0,255,0), 712, 400, 0, 0)
     rodando = True
     solar = Sistema([terra, sol])
     while rodando:
@@ -110,4 +109,3 @@ def main():
                 rodando = False
 
 main()
-#print(math.degrees(math.atan(abs(100/float(400)))))
